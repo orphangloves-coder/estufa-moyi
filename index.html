@@ -16,17 +16,7 @@
             margin:auto;
         }
         h1 { color:#ffb347; margin-bottom:5px; font-size:26px; }
-        .subtitulo { opacity:0.8; margin-bottom:5px; font-size:14px; }
-        .alias {
-            background:#2d2d2d;
-            border:2px solid #ffb347;
-            border-radius:10px;
-            padding:10px;
-            margin:15px 0;
-            font-size:16px;
-            font-weight:bold;
-            color:#ffb347;
-        }
+        .subtitulo { opacity:0.8; margin-bottom:20px; font-size:14px; }
         .base-leyenda {
             background:#6b6b6b;
             border-radius:8px;
@@ -38,7 +28,7 @@
         }
         .base-dibujo {
             display:flex;
-            flex-direction:column;
+            flex-direction:column-reverse;
             gap:2px;
             margin:10px 0;
         }
@@ -48,27 +38,49 @@
             gap:2px;
         }
         .base-ladrillo {
-            width:28px;
+            width:30px;
             height:12px;
             background:#6b6b6b;
             border:1px solid #aaa;
             border-radius:2px;
+        }
+        .puertas {
+            display:flex;
+            justify-content:center;
+            gap:12px;
+            margin:8px 0;
+        }
+        .puerta {
+            width:24px;
+            height:30px;
+            background:#1a1a1a;
+            border:2px solid #ffb347;
+            border-radius:4px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-size:10px;
+            font-weight:bold;
         }
         .estufa {
             display:flex;
             flex-direction:column-reverse;
             gap:2px;
             margin:20px 0;
+            transition: transform 0.8s ease;
+        }
+        .estufa.girada {
+            transform: rotateY(90deg);
         }
         .fila {
             display:flex;
             justify-content:center;
             gap:2px;
-            position: relative;
         }
         .ladrillo {
-            width:28px;
-            height:16px;
+            width:30px;
+            height:18px;
             background:#c46a3a;
             border:1px solid #f5e6d3;
             border-radius:3px;
@@ -92,50 +104,9 @@
             background: linear-gradient(90deg, #c46a3a 0%, #c46a3a var(--progreso, 50%), #8a3d22 var(--progreso, 50%));
             opacity:0.7;
         }
-        .tejuela {
-            width:28px;
-            height:8px;
-            background:#e8b06c;
-            border:1px solid #d9a066;
-            border-radius:2px;
-            transition: all 0.5s ease;
-            font-size:6px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            color:white;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
-        }
-        .tejuela.vacio {
-            background:rgba(255,255,255,0.1);
-            border:1px dashed rgba(255,255,255,0.3);
-        }
-        .puerta {
-            width:28px;
-            height:30px;
-            background:#1a1a1a;
-            border:2px solid #888;
-            border-radius:4px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            color:white;
-            font-size:10px;
-            font-weight:bold;
-            box-shadow: inset 0 0 5px #000;
-            position: relative;
-            z-index: 2;
-        }
-        .puerta::after {
-            content: '';
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 6px;
-            height: 6px;
-            background: #ffb347;
-            border-radius: 50%;
-            box-shadow: 0 0 5px #ffb347;
+        .ladrillo.interno {
+            background: #555;
+            border:1px solid #ffb347;
         }
         .progreso {
             background:#2d2d2d;
@@ -216,8 +187,7 @@
             width:90%;
             max-width:350px;
         }
-        .modal-content input,
-        .modal-content textarea {
+        .modal-content input {
             width:100%;
             padding:12px;
             border-radius:10px;
@@ -227,7 +197,6 @@
             font-size:16px;
             margin:8px 0;
             text-align:center;
-            resize: none;
         }
         .modal-content button {
             background:#ffb347;
@@ -261,43 +230,20 @@
             border:1px solid #2ecc71;
             font-size:16px;
         }
-        .mensajes {
-            background:#1e1e2e;
-            border-radius:12px;
-            padding:15px;
-            margin:20px 0;
-            text-align:left;
-            display:none;
-        }
-        .mensajes h3 {
-            color:#ffb347;
-            margin-bottom:10px;
-            text-align:center;
-        }
-        .mensaje {
-            background:#2d2d2d;
-            border-radius:8px;
-            padding:10px;
-            margin:8px 0;
-            font-size:14px;
-        }
-        .mensaje .nombre {
-            font-weight:bold;
-            color:#ffb347;
-            font-size:12px;
-        }
-        .mensaje .texto {
-            margin-top:4px;
-        }
     </style>
 </head>
 <body>
     <h1>⚽ MOYI CUMPLE 🧱</h1>
     <p class="subtitulo">La Estufa del Refugio 🔥</p>
-    <div class="alias">💸 Alias: unladrilloparamoyi</div>
 
-    <!-- Estufa -->
+    <!-- Estufa (ladrillos) -->
     <div class="estufa" id="estufa"></div>
+
+    <!-- Puertas (sobre la base) -->
+    <div class="puertas">
+        <div class="puerta">🚪</div>
+        <div class="puerta">🚪</div>
+    </div>
 
     <!-- Base dibujada -->
     <div class="base-leyenda">🧱 LA BASE ESTÁ ✅</div>
@@ -310,50 +256,26 @@
         </div>
         <div class="stats">
             <div class="stat">
-                <span id="totalRecaudado">$0</span>
-                <small>Recaudado</small>
-            </div>
-            <div class="stat">
                 <span id="ladrillosPuestos">0</span>
                 <small>Ladrillos puestos</small>
             </div>
         </div>
     </div>
 
-    <!-- Botones principales -->
-    <button class="boton" onclick="abrirModalDonacion()">🧱 PONER LADRILLOS</button>
-    <button class="boton secundario" onclick="abrirModalMensaje()">💬 DEJAR MENSAJE A MOYI</button>
-    <button class="boton secundario" onclick="toggleMensajes()">👀 VER MENSAJES PARA MOYI</button>
+    <!-- Botones -->
+    <button class="boton" onclick="abrirModal()">🧱 PONER LADRILLOS</button>
+    <button class="boton secundario" onclick="verInterior()">🩻 VER INTERIOR (CORTE TRANSVERSAL)</button>
     <a class="boton secundario" href="https://drive.google.com/file/d/1GgSeMMCyLdA9kxjJWhSaqpRvQBUBnLLQ/view?usp=drivesdk" target="_blank" style="text-decoration:none; display:block; text-align:center;">📖 CHUSMEÁ EL MANUAL</a>
     <a class="boton secundario" href="https://drive.google.com/file/d/1bwon_lsGFb0mgeouGxkHP8SKRgS2IYQ5/view?usp=drivesdk" target="_blank" style="text-decoration:none; display:block; text-align:center;">🖼️ VER CORTE TRANSVERSAL (IMAGEN)</a>
-
-    <!-- Sección de mensajes (oculta por defecto) -->
-    <div class="mensajes" id="seccionMensajes">
-        <h3>💌 Mensajes para Moyi</h3>
-        <div id="listaMensajes"></div>
-    </div>
 
     <!-- Modal donación -->
     <div class="modal" id="modalDonacion">
         <div class="modal-content">
-            <h2>💰 ¿Cuánto transferiste?</h2>
-            <input type="text" id="nombreDonante" placeholder="Tu nombre" required>
+            <h2>💰 ¿Cuánto donaste?</h2>
+            <input type="text" id="nombre" placeholder="Tu nombre" required>
             <input type="number" id="monto" placeholder="Monto en $" min="1" required>
-            <p style="font-size:12px; opacity:0.8; margin:5px 0;">Alias: <strong style="color:#ffb347;">unladrilloparamoyi</strong></p>
-            <textarea id="mensajeDonacion" placeholder="Dejale un mensaje a Moyi (opcional)" rows="2"></textarea>
             <button onclick="procesarDonacion()">⚽ CONSTRUIR</button>
-            <button class="cancelar" onclick="cerrarModal('modalDonacion')">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Modal mensaje -->
-    <div class="modal" id="modalMensaje">
-        <div class="modal-content">
-            <h2>💬 Dejá tu mensaje</h2>
-            <input type="text" id="nombreMensaje" placeholder="Tu nombre" required>
-            <textarea id="textoMensaje" placeholder="Escribí algo para Moyi..." rows="3" required></textarea>
-            <button onclick="enviarMensaje()">💌 ENVIAR</button>
-            <button class="cancelar" onclick="cerrarModal('modalMensaje')">Cancelar</button>
+            <button class="cancelar" onclick="cerrarModal()">Cancelar</button>
         </div>
     </div>
 
@@ -364,31 +286,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // ===== CONFIGURACIÓN DE FIREBASE (REEMPLAZAR CON TUS DATOS) =====
+        // ===== CONFIGURACIÓN DE FIREBASE =====
         const firebaseConfig = {
-
-    apiKey: "AIzaSyCMPscNifbJq-hpKKoT16qx2iSidoEFDjc",
-
-    authDomain: "estufa-moyi-65f87.firebaseapp.com",
-
-    projectId: "estufa-moyi-65f87",
-
-    storageBucket: "estufa-moyi-65f87.firebasestorage.app",
-
-    messagingSenderId: "1030481388441",
-
-    appId: "1:1030481388441:web:7a75cfe46a21e28eb9e908"
-
-  };
-        // ============================================================
+            apiKey: "AIzaSyCMPscNifbJq-hpKKoT16qx2iSidoEFDjc",
+            authDomain: "estufa-moyi-65f87.firebaseapp.com",
+            projectId: "estufa-moyi-65f87",
+            storageBucket: "estufa-moyi-65f87.firebasestorage.app",
+            messagingSenderId: "1030481388441",
+            appId: "1:1030481388441:web:7a75cfe46a21e28eb9e908"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
         const PRECIO_LADRILLO = 7531.30;
-        let bricksData = [];
+        let modoRayosX = false;
+        let bricksData = []; // Array con datos actuales
 
-        // ===== GENERAR ESTRUCTURA VISUAL =====
+        // ===== ESTRUCTURA VISUAL =====
         function generarBaseDibujo() {
             const contenedor = document.getElementById('baseDibujo');
             contenedor.innerHTML = '';
@@ -407,144 +322,90 @@
         function generarEstufa() {
             const contenedor = document.getElementById('estufa');
             contenedor.innerHTML = '';
-            bricksData = [];
-            // Configuración de filas y elementos especiales
-            const filas = [
-                { tipo: 'ladrillo', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 5, puerta: 'leñero' },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'tejuela', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 5, puerta: 'horno' },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'tejuela', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'tejuela', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'tejuela', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'ladrillo', cantidad: 5 },
-                { tipo: 'tejuela', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 6 },
-                { tipo: 'ladrillo', cantidad: 6 },
-                { tipo: 'tejuela', cantidad: 6 }
-            ];
-
-            filas.forEach((filaInfo, indiceFila) => {
+            bricksData = []; // reset temporal
+            for (let i = 0; i < 20; i++) {
                 const fila = document.createElement('div');
                 fila.className = 'fila';
-                const cantidad = filaInfo.cantidad;
-                const elementos = [];
+                const cantidad = (i === 0 || i === 19) ? 6 : (i % 2 === 0 ? 5 : 6);
                 for (let j = 0; j < cantidad; j++) {
-                    if (filaInfo.puerta && j === Math.floor(cantidad / 2)) {
-                        const puerta = document.createElement('div');
-                        puerta.className = 'puerta';
-                        puerta.textContent = filaInfo.puerta === 'leñero' ? '🚪' : '🍞';
-                        elementos.push(puerta);
-                    } else {
-                        if (filaInfo.tipo === 'tejuela') {
-                            const tejuela = document.createElement('div');
-                            tejuela.className = 'tejuela vacio';
-                            tejuela.dataset.index = bricksData.length;
-                            bricksData.push({ funded: 0, donors: [] });
-                            elementos.push(tejuela);
-                        } else {
-                            const ladrillo = document.createElement('div');
-                            ladrillo.className = 'ladrillo vacio';
-                            ladrillo.dataset.index = bricksData.length;
-                            bricksData.push({ funded: 0, donors: [] });
-                            elementos.push(ladrillo);
-                        }
-                    }
+                    const ladrillo = document.createElement('div');
+                    ladrillo.className = 'ladrillo vacio';
+                    ladrillo.dataset.index = bricksData.length;
+                    bricksData.push({ funded: 0, donors: [] });
+                    fila.appendChild(ladrillo);
                 }
-                elementos.forEach(el => fila.appendChild(el));
                 contenedor.appendChild(fila);
-            });
+            }
+            // Una vez generada la estructura, escuchar cambios en Firebase
             escucharFirebase();
         }
 
-        // ===== SINCRONIZACIÓN FIREBASE =====
+        // ===== SINCRONIZACIÓN CON FIREBASE =====
         function escucharFirebase() {
             const bricksRef = database.ref('bricks');
             bricksRef.on('value', (snapshot) => {
                 const data = snapshot.val() || {};
-                document.querySelectorAll('.ladrillo, .tejuela').forEach(el => {
-                    const idx = el.dataset.index;
-                    if (idx !== undefined) {
-                        bricksData[parseInt(idx)] = data[parseInt(idx)] || { funded: 0, donors: [] };
+                bricksData = [];
+                for (let i = 0; i < 20; i++) {
+                    const cantidad = (i === 0 || i === 19) ? 6 : (i % 2 === 0 ? 5 : 6);
+                    for (let j = 0; j < cantidad; j++) {
+                        const index = bricksData.length;
+                        bricksData.push(data[index] || { funded: 0, donors: [] });
                     }
-                });
+                }
                 actualizarVisual();
             });
         }
 
         function actualizarVisual() {
-            document.querySelectorAll('.ladrillo, .tejuela').forEach(el => {
+            const todos = document.querySelectorAll('.ladrillo');
+            todos.forEach(el => {
                 const idx = parseInt(el.dataset.index);
-                if (idx === undefined) return;
                 const data = bricksData[idx] || { funded: 0, donors: [] };
                 el.innerHTML = '';
+                el.className = 'ladrillo';
                 if (data.funded <= 0) {
-                    if (el.classList.contains('tejuela')) {
-                        el.className = 'tejuela vacio';
-                    } else {
-                        el.className = 'ladrillo vacio';
-                    }
+                    el.className = 'ladrillo vacio';
                 } else if (data.funded < PRECIO_LADRILLO) {
-                    if (el.classList.contains('tejuela')) {
-                        el.className = 'tejuela';
-                        const porcentaje = (data.funded / PRECIO_LADRILLO) * 100;
-                        el.style.background = `linear-gradient(90deg, #e8b06c 0%, #e8b06c ${porcentaje}%, #8a3d22 ${porcentaje}%)`;
-                        el.style.opacity = '0.7';
-                    } else {
-                        el.className = 'ladrillo parcial';
-                        const porcentaje = (data.funded / PRECIO_LADRILLO) * 100;
-                        el.style.setProperty('--progreso', `${porcentaje}%`);
-                    }
+                    el.className = 'ladrillo parcial';
+                    const porcentaje = (data.funded / PRECIO_LADRILLO) * 100;
+                    el.style.setProperty('--progreso', `${porcentaje}%`);
                     el.textContent = data.donors.join('+');
                 } else {
-                    if (el.classList.contains('tejuela')) {
-                        el.className = 'tejuela';
-                        el.style.background = '#e8b06c';
-                        el.style.opacity = '1';
-                    } else {
-                        el.className = 'ladrillo';
-                    }
+                    el.className = 'ladrillo';
                     el.textContent = data.donors.join('+');
+                }
+                if (modoRayosX) {
+                    el.classList.add('interno');
+                } else {
+                    el.classList.remove('interno');
                 }
             });
 
-            const completos = bricksData.filter(b => b && b.funded >= PRECIO_LADRILLO).length;
+            const completos = bricksData.filter(b => b.funded >= PRECIO_LADRILLO).length;
             document.getElementById('ladrillosPuestos').textContent = completos;
-            const financiado = bricksData.reduce((sum, b) => sum + (b ? b.funded : 0), 0);
-            document.getElementById('totalRecaudado').textContent = '$' + financiado.toLocaleString('es-AR');
+            const financiado = bricksData.reduce((sum, b) => sum + b.funded, 0);
             const TOTAL_ESTIMADO = bricksData.length * PRECIO_LADRILLO;
             const porcentaje = Math.min(100, Math.round((financiado / TOTAL_ESTIMADO) * 100));
             document.getElementById('relleno').style.width = porcentaje + '%';
             document.getElementById('relleno').textContent = porcentaje + '%';
         }
 
-        // ===== DONACIONES =====
+        // ===== PROCESAR DONACIÓN =====
         function procesarDonacion() {
-            const nombre = document.getElementById('nombreDonante').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
             const monto = parseInt(document.getElementById('monto').value);
-            const mensaje = document.getElementById('mensajeDonacion').value.trim();
             if (!nombre) { mostrarToast('⚠️ Poné tu nombre'); return; }
             if (!monto || monto <= 0) { mostrarToast('⚠️ Ingresá un monto válido'); return; }
-            cerrarModal('modalDonacion');
+            cerrarModal();
 
             const bricksRef = database.ref('bricks');
             bricksRef.once('value').then(snapshot => {
                 const bricks = snapshot.val() || {};
                 let restante = monto;
                 let completados = 0;
-                document.querySelectorAll('.ladrillo, .tejuela').forEach(el => {
-                    if (restante <= 0) return;
-                    const idx = parseInt(el.dataset.index);
-                    if (idx === undefined) return;
-                    const brick = bricks[idx] || { funded: 0, donors: [] };
+                for (let i = 0; i < bricksData.length && restante > 0; i++) {
+                    const brick = bricks[i] || { funded: 0, donors: [] };
                     const faltante = PRECIO_LADRILLO - brick.funded;
                     if (faltante > 0) {
                         const aporte = Math.min(restante, faltante);
@@ -556,22 +417,15 @@
                         if (brick.funded >= PRECIO_LADRILLO) {
                             completados++;
                         }
-                        bricks[idx] = brick;
+                        bricks[i] = brick;
                     }
-                });
+                }
                 return bricksRef.set(bricks).then(() => {
-                    let mensajeTexto = `⚽ ¡${nombre} puso $${monto.toLocaleString()}!`;
-                    if (completados > 0) mensajeTexto += ` ${completados} ladrillo(s) completado(s)`;
-                    else mensajeTexto += ` Aportaste a un ladrillo parcial`;
-                    if (restante > 0) mensajeTexto += ` (sobraron $${restante.toFixed(2)})`;
-                    mostrarToast(mensajeTexto);
-                    if (mensaje) {
-                        database.ref('mensajes').push({
-                            nombre: nombre,
-                            texto: mensaje,
-                            timestamp: Date.now()
-                        });
-                    }
+                    let mensaje = `⚽ ¡${nombre} puso $${monto.toLocaleString()}!`;
+                    if (completados > 0) mensaje += ` ${completados} ladrillo(s) completado(s)`;
+                    else mensaje += ` Aportaste a un ladrillo parcial`;
+                    if (restante > 0) mensaje += ` (sobraron $${restante.toFixed(2)})`;
+                    mostrarToast(mensaje);
                 });
             }).catch(error => {
                 console.error(error);
@@ -579,63 +433,29 @@
             });
         }
 
-        // ===== MENSAJES =====
-        function abrirModalMensaje() {
-            document.getElementById('modalMensaje').style.display = 'flex';
-            document.getElementById('nombreMensaje').focus();
-        }
-
-        function toggleMensajes() {
-            const seccion = document.getElementById('seccionMensajes');
-            if (seccion.style.display === 'none' || seccion.style.display === '') {
-                seccion.style.display = 'block';
+        // ===== MODO RAYOS X =====
+        function verInterior() {
+            modoRayosX = !modoRayosX;
+            const estufa = document.getElementById('estufa');
+            if (modoRayosX) {
+                estufa.classList.add('girada');
+                mostrarToast('🩻 Corte transversal activado');
             } else {
-                seccion.style.display = 'none';
+                estufa.classList.remove('girada');
+                mostrarToast('🧱 Vista normal');
             }
+            actualizarVisual();
         }
 
-        function enviarMensaje() {
-            const nombre = document.getElementById('nombreMensaje').value.trim();
-            const texto = document.getElementById('textoMensaje').value.trim();
-            if (!nombre || !texto) {
-                mostrarToast('⚠️ Completá nombre y mensaje');
-                return;
-            }
-            database.ref('mensajes').push({
-                nombre: nombre,
-                texto: texto,
-                timestamp: Date.now()
-            }).then(() => {
-                cerrarModal('modalMensaje');
-                mostrarToast('💌 ¡Mensaje enviado!');
-            });
-        }
-
-        function escucharMensajes() {
-            database.ref('mensajes').on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                const div = document.createElement('div');
-                div.className = 'mensaje';
-                div.innerHTML = `<div class="nombre">${msg.nombre}</div><div class="texto">${msg.texto}</div>`;
-                document.getElementById('listaMensajes').prepend(div);
-            });
-        }
-
-        // ===== MODALES Y TOAST =====
-        function abrirModalDonacion() {
+        // ===== MODAL Y TOAST =====
+        function abrirModal() {
             document.getElementById('modalDonacion').style.display = 'flex';
-            document.getElementById('nombreDonante').focus();
+            document.getElementById('nombre').focus();
         }
-        function cerrarModal(id) {
-            document.getElementById(id).style.display = 'none';
-            if (id === 'modalDonacion') {
-                document.getElementById('nombreDonante').value = '';
-                document.getElementById('monto').value = '';
-                document.getElementById('mensajeDonacion').value = '';
-            } else if (id === 'modalMensaje') {
-                document.getElementById('nombreMensaje').value = '';
-                document.getElementById('textoMensaje').value = '';
-            }
+        function cerrarModal() {
+            document.getElementById('modalDonacion').style.display = 'none';
+            document.getElementById('nombre').value = '';
+            document.getElementById('monto').value = '';
         }
         function mostrarToast(mensaje) {
             const toast = document.getElementById('toast');
@@ -647,7 +467,6 @@
         // ===== INICIALIZAR =====
         generarBaseDibujo();
         generarEstufa();
-        escucharMensajes();
     </script>
 </body>
 </html>

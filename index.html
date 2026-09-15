@@ -290,22 +290,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // ===== CONFIGURACIÓN DE FIREBASE (REEMPLAZAR CON TUS DATOS) =====
+        // ===== CONFIGURACIÓN DE FIREBASE =====
         const firebaseConfig = {
-
-    apiKey: "AIzaSyCMPscNifbJq-hpKKoT16qx2iSidoEFDjc",
-
-    authDomain: "estufa-moyi-65f87.firebaseapp.com",
-
-    projectId: "estufa-moyi-65f87",
-
-    storageBucket: "estufa-moyi-65f87.firebasestorage.app",
-
-    messagingSenderId: "1030481388441",
-
-    appId: "1:1030481388441:web:7a75cfe46a21e28eb9e908"
-
-  };        // ============================================================
+            apiKey: "AIzaSyCMPscNifbJq-hpKKoT16qx2iSidoEFDjc",
+            authDomain: "estufa-moyi-65f87.firebaseapp.com",
+            projectId: "estufa-moyi-65f87",
+            storageBucket: "estufa-moyi-65f87.firebasestorage.app",
+            messagingSenderId: "1030481388441",
+            appId: "1:1030481388441:web:7a75cfe46a21e28eb9e908"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -358,7 +351,6 @@
                 const data = snapshot.val() || {};
                 bricksData = [];
                 for (let i = 0; i < 20; i++) {
-                    // Calcular cuántos ladrillos debería tener esta fila
                     const cantidad = (i === 0 || i === 19) ? 6 : (i % 2 === 0 ? 5 : 6);
                     for (let j = 0; j < cantidad; j++) {
                         const index = bricksData.length;
@@ -412,13 +404,11 @@
             if (!monto || monto <= 0) { mostrarToast('⚠️ Ingresá un monto válido'); return; }
             cerrarModal();
 
-            // Leer el estado actual de Firebase y actualizar en una sola escritura
             const bricksRef = database.ref('bricks');
             bricksRef.once('value').then(snapshot => {
                 const bricks = snapshot.val() || {};
                 let restante = monto;
                 let completados = 0;
-                // Recorrer ladrillos en orden (asumimos índices 0..N)
                 for (let i = 0; i < bricksData.length && restante > 0; i++) {
                     const brick = bricks[i] || { funded: 0, donors: [] };
                     const faltante = PRECIO_LADRILLO - brick.funded;
@@ -435,7 +425,6 @@
                         bricks[i] = brick;
                     }
                 }
-                // Escribir todos los cambios de una vez
                 return bricksRef.set(bricks).then(() => {
                     let mensaje = `⚽ ¡${nombre} puso $${monto.toLocaleString()}!`;
                     if (completados > 0) mensaje += ` ${completados} ladrillo(s) completado(s)`;

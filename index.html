@@ -187,7 +187,8 @@
             width:90%;
             max-width:350px;
         }
-        .modal-content input {
+        .modal-content input,
+        .modal-content textarea {
             width:100%;
             padding:12px;
             border-radius:10px;
@@ -197,6 +198,12 @@
             font-size:16px;
             margin:8px 0;
             text-align:center;
+            font-family:inherit;
+        }
+        .modal-content textarea {
+            min-height:80px;
+            resize:vertical;
+            text-align:left;
         }
         .modal-content button {
             background:#ffb347;
@@ -214,6 +221,26 @@
             background:#e74c3c;
             color:white;
         }
+        .alias {
+            background:#2a2a3e;
+            border:1px dashed #ffb347;
+            border-radius:10px;
+            padding:10px;
+            margin:8px 0;
+            font-size:14px;
+        }
+        .alias strong {
+            color:#ffb347;
+            display:block;
+            font-size:11px;
+            margin-bottom:3px;
+            letter-spacing:1px;
+        }
+        .alias .valor {
+            font-size:16px;
+            font-weight:bold;
+            user-select:all;
+        }
         .toast {
             position:fixed;
             top:50%;
@@ -229,6 +256,30 @@
             pointer-events:none;
             border:1px solid #2ecc71;
             font-size:16px;
+        }
+        .mensaje {
+            background:#2d2d2d;
+            border-left:3px solid #ffb347;
+            padding:10px;
+            border-radius:8px;
+            margin-bottom:8px;
+            font-size:13px;
+            text-align:left;
+        }
+        .mensaje .autor {
+            color:#ffb347;
+            font-weight:bold;
+            font-size:12px;
+            margin-bottom:3px;
+        }
+        .mensaje .texto {
+            opacity:0.9;
+        }
+        .seccion-mensajes {
+            display:none;
+        }
+        .seccion-mensajes.visible {
+            display:block;
         }
     </style>
 </head>
@@ -249,16 +300,12 @@
     <div class="base-leyenda">🧱 LA BASE ESTÁ ✅</div>
     <div class="base-dibujo" id="baseDibujo"></div>
 
-    <!-- Progreso -->
+    <!-- Progreso (SIN monto) -->
     <div class="progreso">
         <div class="barra">
             <div class="relleno" id="relleno" style="width:0%">0%</div>
         </div>
         <div class="stats">
-            <div class="stat">
-                <span id="totalRecaudado">$0</span>
-                <small>Recaudado</small>
-            </div>
             <div class="stat">
                 <span id="ladrillosPuestos">0</span>
                 <small>Ladrillos puestos</small>
@@ -266,20 +313,43 @@
         </div>
     </div>
 
-    <!-- Botones -->
+    <!-- Botones principales -->
     <button class="boton" onclick="abrirModal()">🧱 PONER LADRILLOS</button>
+    <button class="boton secundario" onclick="toggleMensajes()">💌 VER MENSAJES</button>
+    <button class="boton secundario" onclick="abrirModalMensaje()">✍️ DEJAR UN MENSAJE</button>
     <button class="boton secundario" onclick="verInterior()">🩻 VER INTERIOR (CORTE TRANSVERSAL)</button>
     <a class="boton secundario" href="https://drive.google.com/file/d/1GgSeMMCyLdA9kxjJWhSaqpRvQBUBnLLQ/view?usp=drivesdk" target="_blank" style="text-decoration:none; display:block; text-align:center;">📖 CHUSMEÁ EL MANUAL</a>
     <a class="boton secundario" href="https://drive.google.com/file/d/1bwon_lsGFb0mgeouGxkHP8SKRgS2IYQ5/view?usp=drivesdk" target="_blank" style="text-decoration:none; display:block; text-align:center;">🖼️ VER CORTE TRANSVERSAL (IMAGEN)</a>
 
-    <!-- Modal donación -->
+    <!-- Mensajes para Moyi (oculto por defecto) -->
+    <div class="progreso seccion-mensajes" id="seccionMensajes" style="text-align:left;">
+        <h3 style="color:#ffb347; margin-bottom:10px; text-align:center;">💌 Mensajes para Moyi</h3>
+        <div id="listaMensajes"></div>
+    </div>
+
+    <!-- Modal transferencia -->
     <div class="modal" id="modalDonacion">
         <div class="modal-content">
-            <h2>💰 ¿Cuánto donaste?</h2>
+            <h2>💰 ¿Cuánto transferiste?</h2>
+            <div class="alias">
+                <strong>ALIAS</strong>
+                <div class="valor">unladrilloparamoyi</div>
+            </div>
             <input type="text" id="nombre" placeholder="Tu nombre" required>
             <input type="number" id="monto" placeholder="Monto en $" min="1" required>
             <button onclick="procesarDonacion()">⚽ CONSTRUIR</button>
             <button class="cancelar" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal mensaje -->
+    <div class="modal" id="modalMensaje">
+        <div class="modal-content">
+            <h2>💌 Dejale un mensaje a Moyi</h2>
+            <input type="text" id="nombreMensaje" placeholder="Tu nombre" required>
+            <textarea id="textoMensaje" placeholder="Escribí tu mensaje..." required></textarea>
+            <button onclick="enviarMensaje()">💌 ENVIAR</button>
+            <button class="cancelar" onclick="cerrarModalMensaje()">Cancelar</button>
         </div>
     </div>
 
@@ -305,7 +375,7 @@
 
         const PRECIO_LADRILLO = 7531.30;
         let modoRayosX = false;
-        let bricksData = []; // Array con datos actuales
+        let bricksData = [];
 
         // ===== ESTRUCTURA VISUAL =====
         function generarBaseDibujo() {
@@ -326,7 +396,7 @@
         function generarEstufa() {
             const contenedor = document.getElementById('estufa');
             contenedor.innerHTML = '';
-            bricksData = []; // reset temporal
+            bricksData = [];
             for (let i = 0; i < 20; i++) {
                 const fila = document.createElement('div');
                 fila.className = 'fila';
@@ -340,7 +410,6 @@
                 }
                 contenedor.appendChild(fila);
             }
-            // Una vez generada la estructura, escuchar cambios en Firebase
             escucharFirebase();
         }
 
@@ -388,15 +457,77 @@
 
             const completos = bricksData.filter(b => b.funded >= PRECIO_LADRILLO).length;
             document.getElementById('ladrillosPuestos').textContent = completos;
+
             const financiado = bricksData.reduce((sum, b) => sum + b.funded, 0);
-            document.getElementById('totalRecaudado').textContent = '$' + financiado.toLocaleString('es-AR');
             const TOTAL_ESTIMADO = bricksData.length * PRECIO_LADRILLO;
             const porcentaje = Math.min(100, Math.round((financiado / TOTAL_ESTIMADO) * 100));
             document.getElementById('relleno').style.width = porcentaje + '%';
             document.getElementById('relleno').textContent = porcentaje + '%';
         }
 
-        // ===== PROCESAR DONACIÓN =====
+        // ===== MENSAJES =====
+        function escucharMensajes() {
+            const mensajesRef = database.ref('mensajes');
+            mensajesRef.on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const contenedor = document.getElementById('listaMensajes');
+                contenedor.innerHTML = '';
+                const lista = Object.values(data);
+                if (lista.length === 0) {
+                    contenedor.innerHTML = '<p style="text-align:center; opacity:0.6; font-size:13px;">Aún no hay mensajes</p>';
+                    return;
+                }
+                lista.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                lista.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'mensaje';
+                    div.innerHTML = `<div class="autor">${msg.nombre || 'Anónimo'}</div><div class="texto">${msg.texto || ''}</div>`;
+                    contenedor.appendChild(div);
+                });
+            });
+        }
+
+        function toggleMensajes() {
+            const seccion = document.getElementById('seccionMensajes');
+            seccion.classList.toggle('visible');
+            if (seccion.classList.contains('visible')) {
+                setTimeout(() => {
+                    seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        // ===== ENVIAR MENSAJE =====
+        function abrirModalMensaje() {
+            document.getElementById('modalMensaje').style.display = 'flex';
+            document.getElementById('nombreMensaje').focus();
+        }
+        function cerrarModalMensaje() {
+            document.getElementById('modalMensaje').style.display = 'none';
+            document.getElementById('nombreMensaje').value = '';
+            document.getElementById('textoMensaje').value = '';
+        }
+        function enviarMensaje() {
+            const nombre = document.getElementById('nombreMensaje').value.trim();
+            const texto = document.getElementById('textoMensaje').value.trim();
+            if (!nombre) { mostrarToast('⚠️ Poné tu nombre'); return; }
+            if (!texto) { mostrarToast('⚠️ Escribí un mensaje'); return; }
+
+            const mensajesRef = database.ref('mensajes');
+            mensajesRef.push({
+                nombre: nombre,
+                texto: texto,
+                timestamp: Date.now()
+            }).then(() => {
+                cerrarModalMensaje();
+                mostrarToast('💌 ¡Mensaje enviado!');
+            }).catch(error => {
+                console.error(error);
+                mostrarToast('⚠️ Error al enviar el mensaje');
+            });
+        }
+
+        // ===== PROCESAR TRANSFERENCIA =====
         function procesarDonacion() {
             const nombre = document.getElementById('nombre').value.trim();
             const monto = parseInt(document.getElementById('monto').value);
@@ -426,15 +557,14 @@
                     }
                 }
                 return bricksRef.set(bricks).then(() => {
-                    let mensaje = `⚽ ¡${nombre} puso $${monto.toLocaleString()}!`;
-                    if (completados > 0) mensaje += ` ${completados} ladrillo(s) completado(s)`;
-                    else mensaje += ` Aportaste a un ladrillo parcial`;
-                    if (restante > 0) mensaje += ` (sobraron $${restante.toFixed(2)})`;
+                    let mensaje = `⚽ ¡Gracias ${nombre}!`;
+                    if (completados > 0) mensaje += ` Completaste ${completados} ladrillo(s) 🧱`;
+                    else mensaje += ` Tu aporte suma a un ladrillo 🧱`;
                     mostrarToast(mensaje);
                 });
             }).catch(error => {
                 console.error(error);
-                mostrarToast('⚠️ Error al guardar la donación');
+                mostrarToast('⚠️ Error al guardar la transferencia');
             });
         }
 
@@ -472,6 +602,7 @@
         // ===== INICIALIZAR =====
         generarBaseDibujo();
         generarEstufa();
+        escucharMensajes();
     </script>
 </body>
 </html>

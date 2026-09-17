@@ -581,4 +581,191 @@
 
             // Índices de ladrillos con fondos
             const indices = [];
-      
+            for (let i = 0; i < bricksData.length; i++) {
+                if (bricksData[i].funded > 0) {
+                    indices.push(i);
+                }
+            }
+
+            let completos = 0;
+            let financiado = 0;
+            let msgIndex = 0;
+
+            for (let k = 0; k < indices.length; k++) {
+                const idx = indices[k];
+                const data = bricksData[idx];
+                const el = document.querySelector(`.ladrillo[data-index="${idx}"]`);
+                if (!el) continue;
+
+                // Pintar ladrillo
+                el.className = 'ladrillo apareciendo';
+                if (data.funded < PRECIO_LADRILLO) {
+                    el.classList.add('parcial');
+                    const porcentaje = (data.funded / PRECIO_LADRILLO) * 100;
+                    el.style.setProperty('--progreso', `${porcentaje}%`);
+                }
+                el.textContent = data.donors.join('+');
+
+                // Contadores
+                if (data.funded >= PRECIO_LADRILLO) completos++;
+                financiado += data.funded;
+                document.getElementById('ladrillosPuestos').textContent = completos;
+                const TOTAL_ESTIMADO = bricksData.length * PRECIO_LADRILLO;
+                const pct = Math.min(100, Math.round((financiado / TOTAL_ESTIMADO) * 100));
+                document.getElementById('relleno').style.width = pct + '%';
+                document.getElementById('relleno').textContent = pct + '%';
+
+                // Cada 3 ladrillos, lanzar un mensaje superpuesto
+                if (k % 3 === 0 && msgIndex < mensajesData.length) {
+                    lanzarMensajeSuperpuesto(mensajesData[msgIndex]);
+                    msgIndex++;
+                }
+
+                await esperar(500);
+            }
+
+            // Lanzar los mensajes restantes (por si quedaron)
+            while (msgIndex < mensajesData.length) {
+                lanzarMensajeSuperpuesto(mensajesData[msgIndex]);
+                msgIndex++;
+                await esperar(700);
+            }
+
+            // Esperar a que termine la última animación de mensajes
+            await esperar(2500);
+
+            // Limpiar
+            capa.classList.remove('activa');
+            capa.innerHTML = '';
+            todos.forEach(el => el.classList.remove('apareciendo'));
+
+            animando = false;
+            btn.disabled = false;
+            btn.textContent = '▶️ VER ANIMACIÓN';
+
+            // Refrescar el visual real (por si hubo cambios en Firebase)
+            actualizarVisual();
+            renderizarMensajes(mensajesData);
+
+            mostrarToast('🎉 ¡Estufa terminada!');
+        }
+
+        function lanzarMensajeSuperpuesto(msg) {
+            const capa = document.getElementById('capaMensajes');
+            const div = document.createElement('div');
+            div.className = 'mensaje-flotante';
+
+            // Posición aleatoria dentro de la capa
+            const posX = 5 + Math.random() * 55; // % desde la izquierda
+            const posY = 10 + Math.random() * 70; // % desde arriba
+            div.style.left = posX + '%';
+            div.style.top = posY + '%';
+
+            div.innerHTML = `<div class="autor">${msg.nombre || 'Anónimo'}</div><div class="texto">${msg.texto || ''}</div>`;
+            capa.appendChild(div);
+
+            // Eliminar del DOM después de la animación
+            setTimeout(() => {
+                if (div.parentNode) div.parentNode.removeChild(div);
+            }, 4200);
+        }
+
+        function esperar(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ===== ENVIAR MENSAJE =====
+        function abrirModalMensaje() {
+            document.getElementById('modalMensaje').style.display = 'flex';
+            document.getElementById('nombreMensaje').focus();
+        }
+        function cerrarModalMensaje() {
+            document.getElementById('modalMensaje').style.display = 'none';
+            document.getElementById('nombreMensaje').value = '';
+            document.getElementById('textoMensaje').value = '';
+        }
+        function enviarMensaje() {
+            const nombre = document.getElementById('nombreMensaje').value.trim();
+            const texto = document.getElementById('textoMensaje').value.trim();
+            if (!nombre) { mostrarToast('⚠️ Poné tu nombre'); return; }
+            if (!texto) { mostrarToast('⚠️ Escribí un mensaje'); return; }
+
+            const mensajesRef = database.ref('mensajes');
+            mensajesRef.push({
+                nombre: nombre,
+                texto: texto,
+                timestamp: Date.now()
+            }).then(() => {
+                cerrarModalMensaje();
+                mostrarToast('💌 ¡Mensaje enviado!');
+            }).catch(error => {
+                console.error(error);
+                mostrarToast('⚠️ Error al enviar el mensaje');
+            });
+        }
+
+        // ===== PROCESAR TRANSFERENCIA =====
+        function procesarDonacion() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const monto = parseInt(document.getElementById('monto').value);
+            if (!nombre) { mostrarToast('⚠️ Poné tu nombre'); return; }
+            if (!monto || monto <= 0) { mostrarToast('⚠️ Ingresá un monto válido'); return; }
+            cerrarModal();
+
+            const bricksRef = database.ref('bricks');
+            bricksRef.once('value').then(snapshot => {
+                const bricks = snapshot.val() || {};
+                let restante = monto;
+                let completados = 0;
+                for (let i = 0; i < bricksData.length && restante > 0; i++) {
+                    const brick = bricks[i] || { funded: 0, donors: [] };
+                    const faltante = PRECIO_LADRILLO - brick.funded;
+                    if (faltante > 0) {
+                        const aporte = Math.min(restante, faltante);
+                        brick.funded += aporte;
+                        restante -= aporte;
+                        if (!brick.donors.includes(nombre)) {
+                            brick.donors.push(nombre);
+                        }
+                        if (brick.funded >= PRECIO_LADRILLO) {
+                            completados++;
+                        }
+                        bricks[i] = brick;
+                    }
+                }
+                return bricksRef.set(bricks).then(() => {
+                    let mensaje = `⚽ ¡Gracias ${nombre}!`;
+                    if (completados > 0) mensaje += ` Completaste ${completados} ladrillo(s) 🧱`;
+                    else mensaje += ` Tu aporte suma a un ladrillo 🧱`;
+                    mostrarToast(mensaje);
+                });
+            }).catch(error => {
+                console.error(error);
+                mostrarToast('⚠️ Error al guardar la transferencia');
+            });
+        }
+
+        // ===== MODAL Y TOAST =====
+        function abrirModal() {
+            document.getElementById('modalDonacion').style.display = 'flex';
+            document.getElementById('nombre').focus();
+        }
+        function cerrarModal() {
+            document.getElementById('modalDonacion').style.display = 'none';
+            document.getElementById('nombre').value = '';
+            document.getElementById('monto').value = '';
+        }
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+        }
+
+        // ===== INICIALIZAR =====
+        generarBaseDibujo();
+        generarEstufa();
+        escucharMensajes();
+    </script>
+</body>
+</html>
